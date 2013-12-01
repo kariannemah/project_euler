@@ -1,4 +1,5 @@
 triangle_numbers = []
+
 (1..100).each do |n|
   triangle_number = (1 + n) * n / 2
   triangle_numbers << triangle_number
