@@ -1,68 +1,61 @@
 =begin
-Digit factorial chains
-Problem 74
-
+DIGITAL FACTORIAL CHAINS
 The number 145 is well known for the property that the sum of the factorial of its digits is equal to 145:
 
 1! + 4! + 5! = 1 + 24 + 120 = 145
 
 Perhaps less well known is 169, in that it produces the longest chain of numbers that link back to 169; it turns out that there are only three such loops that exist:
-
-169 → 363601 → 1454 → 169
+                                                                                                                                                                                                169 → 363601 → 1454 → 169
 871 → 45361 → 871
 872 → 45362 → 872
 
 It is not difficult to prove that EVERY starting number will eventually get stuck in a loop. For example,
 
-69 → 363600 → 1454 → 169 → 363601 (→ 1454)
 78 → 45360 → 871 → 45361 (→ 871)
 540 → 145 (→ 145)
 
 Starting with 69 produces a chain of five non-repeating terms, but the longest non-repeating chain with a starting number below one million is sixty terms.
 
-How many chains, with a starting number below one million, contain exactly sixty non-repeating terms?
 =end
 
 RubyVM::InstructionSequence.compile_option = { tailcall_optimization: true,
-                                               trace_instruction:     false }
-
+  trace_instruction:     false }
 
 RubyVM::InstructionSequence.new(<<end).eval
 
-  def factorial(n, result = 1)
-    if n == 1
-      result
+  def factorial(n, product = n)
+    if n == 0
+      product = 1
+    elsif n == 1
+      product
     else
-      factorial(n - 1, n * result)
+      product *= (n-1)
+      factorial(n-1, product)
     end
   end
 
-  chain_numbers = []
+  @digit_factorials = (0..9).to_a.map { |n| factorial(n) }
 
-  def factorial_chain(n, chain_numbers = [n])
+  def digital_factorial_sum(n)
+    n.to_s.split('').map(&:to_i).map {|n| @digit_factorials[n]}.reduce(:+)
+  end
 
-    number_split = n.to_s.split('').map {|s| s.to_i}
-    sum_of_factorials = number_split.inject(0) { |sum, i| sum + factorial(i) }
+  def chain_length(n, chain = [n])
+    next_term = digital_factorial_sum(n)
 
-    if chain_numbers.count(sum_of_factorials) == 0
-      chain_numbers << sum_of_factorials
-      factorial_chain(sum_of_factorials, chain_numbers)
+    if ! chain.include? next_term
+      chain << next_term
+      chain_length(next_term, chain)
     else
-      p chain_numbers
+      chain.count
     end
   end
 end
 
-starter_numbers = []
-number_of_chains = starter_numbers.size
+p (1..1000000).to_a.select { |n| chain_length(n) == 60 }.count
 
-(1..1_000_000).each do |n|
-  chain_numbers << n
-  factorial_chain(n, chain_numbers)
-    if chain_numbers.size == 60
-      starter_numbers << n
-    end
-end
+# TODO:
+# - find the solution more quickly
+#   - implement the swing algorithm?
+#   - http://www.luschny.de/math/factorial/scala/FactorialScalaCsharp.htm
 
-puts "There are #{number_of_chains} numbers that produce chains of sixty non-repeating numbers.
-These starting numbers are : #{starter_numbers}."
