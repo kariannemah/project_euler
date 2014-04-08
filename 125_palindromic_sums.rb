@@ -21,14 +21,14 @@ class Integer
   end
 end
 
-palindromes_sum = 0
+palindromes = []
 (1..7100).each do |a|
   (1..a-1).each do |b|
-    sum = (b..a).inject(0) { |sum, n| sum + n.square }
-    if sum > 0 && sum < 10 ** 8
-      p palindromes_sum += sum if sum.palindrome?
+    sum = (b..a).map { |n| n.square }.reduce(:+)
+    if sum.between?(0, 10 ** 8) && sum.palindrome?
+      palindromes << sum
     end
   end
 end
 
-p palindromes_sum
+p palindromes.uniq.reduce(:+)
